@@ -9,6 +9,9 @@
 #include "error_handler.h"
 #include "boot.h"
 #include "core_config.h"
+#include "rtt.h"
+#include "appGPIO.h"
+#include "dash.h"
 
 #include "FreeRTOS.h"
 #include "queue.h"
@@ -21,20 +24,16 @@ void heartbeat_task(void *pvParameters) {
     (void) pvParameters;
     while(true) {
         core_GPIO_toggle_heartbeat();
+	// rprintf("Running...\n");
         vTaskDelay(100 * portTICK_PERIOD_MS);
     }
 }
 
 int main(void) {
     HAL_Init();
+    if (!dash_init()) error_handler();
+    
 
-    // Drivers
-    core_heartbeat_init(GPIOA, GPIO_PIN_5);
-    core_GPIO_set_heartbeat(GPIO_PIN_RESET);
-
-    if (!core_clock_init()) error_handler();
-    if (!core_CAN_init(CORE_BOOT_FDCAN, 1000000)) error_handler();
-    core_boot_init();
 
     int err = xTaskCreate(heartbeat_task, "heartbeat", 1000, NULL, 4, NULL);
     if (err != pdPASS) {
@@ -42,6 +41,9 @@ int main(void) {
     }
 
     NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
+
+    if(core_GPIO_digital_read(PB1_PORT, PB1_PIN)) {core_GPIO_digital_write(LED2_PORT, LED2_PIN, true);}
+
 
     // hand control over to FreeRTOS
     vTaskStartScheduler();

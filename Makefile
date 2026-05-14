@@ -1,4 +1,4 @@
-PROJECT_NAME := template
+PROJECT_NAME := core-dash
 PROJECT_VERSION := f33
 
 # Build info
@@ -17,20 +17,25 @@ STM32_OBJDUMP := $(STM32_PREFIX)-objdump
 # Cross-compilation options
 STM32_COMMON_FLAGS := -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -D USE_HAL_DRIVER -D STM32G473xx
 STM32_CC_FLAGS := $(STM32_COMMON_FLAGS) -ffreestanding -ffunction-sections -fdata-sections -Wall -Wextra -Werror=implicit-function-declaration -g
+STM32_CC_USER_FLAGS := $(STM32_COMMON_FLAGS) -ffreestanding -ffunction-sections -fdata-sections -Wall -Wextra -Werror -g
+STM32_CC_CORE_FLAGS := $(STM32_COMMON_FLAGS) -ffreestanding -ffunction-sections -fdata-sections -Wall -Wextra -Werror -Wno-error=unused-variable \
+					   -Wno-error=unused-but-set-variable -Wno-error=unused-parameter -Wno-error=pointer-sign -Wno-error=implicit-fallthrough \
+					   -Wno-error=return-type -g
 STM32_ASM_FLAGS := $(STM32_CC_FLAGS)
 STM32_LD_SCRIPT := STM32G473RETx_FLASH.ld
 STM32_LD_FLAGS := $(STM32_COMMON_FLAGS) -static -Wl,--gc-sections -T $(STM32_LD_SCRIPT) -specs=nano.specs -specs=nosys.specs
 
-
 # Sources
 APP_DIR := src/app
 APP_SRCS := $(shell find $(APP_DIR) -type f -name "*.c")
-APP_INCLUDE := -I $(APP_DIR)
+APP_INCLUDE := $(shell find $(APP_DIR) -type d)
+APP_INCLUDE := -I $(APP_DIR) $(foreach dir, $(APP_INCLUDE), -I $(dir))
 STM32_APP_OBJS := $(APP_SRCS:$(APP_DIR)/%=$(STM32_BUILD_DIR)/obj/app/%.o)
 
 DRIVER_DIR := src/driver
 DRIVER_SRCS := $(shell find $(DRIVER_DIR) -type f -name "*.c")
-DRIVER_INCLUDE := -I $(DRIVER_DIR)
+DRIVER_INCLUDE := $(shell find $(DRIVER_DIR) -type d)
+DRIVER_INCLUDE := -I $(DRIVER_DIR) $(foreach dir, $(DRIVER_INCLUDE), -I $(dir))
 STM32_DRIVER_OBJS := $(DRIVER_SRCS:$(DRIVER_DIR)/%=$(STM32_BUILD_DIR)/obj/driver/%.o)
 
 # Libraries
@@ -67,7 +72,7 @@ endif
 
 CORE_DIR := ../core/src/driver
 CORE_SRCS := $(shell find $(CORE_DIR)/Src -type f -name "*.c")
-CORE_INCLUDES := -I $(CORE_DIR)/Inc $(STM32CUBE_INCLUDES) $(FREERTOS_INCLUDES) $(RTT_INCLUDES)
+CORE_INCLUDES := -I $(CORE_DIR)/Inc $(STM32CUBE_INCLUDES) $(FREERTOS_INCLUDES)
 CORE_INCLUDES := $(foreach d, $(CORE_INCLUDES),-I $d)
 CORE_OBJS :=  $(CORE_SRCS:$(CORE_DIR)/%=$(STM32_BUILD_DIR)/obj/core/%.o)
 
@@ -96,12 +101,12 @@ $(OUTNAME).ihex: $(OUTNAME).elf
 # application objects
 $(STM32_BUILD_DIR)/obj/app/%.c.o: $(APP_DIR)/%.c
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(STM32_CC) $(STM32_CC_FLAGS) -I src $(APP_INCLUDE) $(DRIVER_INCLUDE) $(FREERTOS_INCLUDES) $(CORE_INCLUDES) $(RTT_INCLUDES) $(DBC_INCLUDES) -c $< -o $@
+	$(STM32_CC) $(STM32_CC_USER_FLAGS) -I src $(DRIVER_INCLUDE) $(APP_INCLUDE) $(FREERTOS_INCLUDES) $(CORE_INCLUDES) $(RTT_INCLUDES) $(DBC_INCLUDES) -c $< -o $@
 
 # driver objects
 $(STM32_BUILD_DIR)/obj/driver/%.c.o: $(DRIVER_DIR)/%.c
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(STM32_CC) $(STM32_CC_FLAGS) -I src $(DRIVER_INCLUDE) $(STM32CUBE_INCLUDES) $(CORE_INCLUDES) $(RTT_INCLUDES) $(DBC_INCLUDES) -c $< -o $@
+	$(STM32_CC) $(STM32_CC_USER_FLAGS) -I src $(DRIVER_INCLUDE) $(APP_INCLUDE) $(STM32CUBE_INCLUDES) $(CORE_INCLUDES) $(RTT_INCLUDES) $(DBC_INCLUDES) -c $< -o $@
 
 # stm32cube objects
 $(STM32_BUILD_DIR)/obj/stm32cube/%.c.o: $(STM32CUBE_DIR)/%.c
@@ -120,7 +125,7 @@ $(STM32_BUILD_DIR)/obj/freertos/%.c.o: $(FREERTOS_DIR)/%.c
 # core objects
 $(STM32_BUILD_DIR)/obj/core/%.c.o: $(CORE_DIR)/%.c
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(STM32_CC) $(STM32_CC_FLAGS) -I src $(STM32CUBE_INCLUDES) $(CORE_INCLUDES) -c $< -o $@
+	$(STM32_CC) $(STM32_CC_CORE_FLAGS) -I src $(RTT_INCLUDES) $(STM32CUBE_INCLUDES) $(CORE_INCLUDES) -c $< -o $@
 
 # dbc objects
 $(STM32_BUILD_DIR)/obj/formula_dbc/%.c.o: $(DBC_DIR)/c_files/%.c

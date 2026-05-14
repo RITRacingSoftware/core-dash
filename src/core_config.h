@@ -5,7 +5,7 @@
 
 /***************** CLOCK PARAMETERS ****************************/
 /***************************************************************/
-#define CORE_CLOCK_USE_HSE 1
+#define CORE_CLOCK_USE_HSE 0
 #define CORE_CLOCK_HSE_FREQ 24000
 #define CORE_CLOCK_SYSCLK_FREQ 160000
 #define CORE_CLOCK_HSI_FREQ 16000
@@ -67,16 +67,18 @@
 #define CORE_FDCAN2_USE_FD 1
 #define CORE_FDCAN3_USE_FD 0
 
+#define CORE_CAN_BUS_OFF_BLOCK 0 
+
 /********************* SPI PARAMETERS **************************/
 /***************************************************************/
-#define CORE_SPI1_SCK_PORT  GPIOA
-#define CORE_SPI1_SCK_PIN   GPIO_PIN_5
+#define CORE_SPI1_SCK_PORT  GPIOB
+#define CORE_SPI1_SCK_PIN   GPIO_PIN_3
 #define CORE_SPI1_SCK_AF    5
-#define CORE_SPI1_MISO_PORT GPIOA
-#define CORE_SPI1_MISO_PIN  GPIO_PIN_6
+#define CORE_SPI1_MISO_PORT GPIOB
+#define CORE_SPI1_MISO_PIN  GPIO_PIN_4
 #define CORE_SPI1_MISO_AF   5
-#define CORE_SPI1_MOSI_PORT GPIOA
-#define CORE_SPI1_MOSI_PIN  GPIO_PIN_7
+#define CORE_SPI1_MOSI_PORT GPIOB
+#define CORE_SPI1_MOSI_PIN  GPIO_PIN_5
 #define CORE_SPI1_MOSI_AF   5
 #define CORE_SPI1_DIVIDER   7
 #define CORE_SPI1_DATA_SIZE 8
@@ -146,8 +148,8 @@
 /******************** BOOTLOADER PARAMETERS ********************/
 /***************************************************************/
 #define CORE_BOOT_FDCAN FDCAN2
-#define CORE_BOOT_FDCAN_ID 0x004
-#define CORE_BOOT_FDCAN_MASTER_ID 0x084
+#define CORE_BOOT_FDCAN_ID 0x007
+#define CORE_BOOT_FDCAN_MASTER_ID 0x087
 #define CORE_BOOT_FDCAN_BROADCAST_ID 0x7ff
 
 
