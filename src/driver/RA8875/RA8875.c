@@ -33,6 +33,16 @@ static RA8875_bpp_e _color_depth;
 //Wait is active low in RA8875
 //#define LCD_WAIT_STATUS (_wait_port->IDR & _wait_pin)
 
+void RA8875_rotate_screen_180(void)
+{
+    uint8_t dpcr = RA8875_read_reg(RA8875_DPCR);
+
+    dpcr |= RA8875_DPCR_REVERSE_HDIR;
+    dpcr |= RA8875_DPCR_REVERSE_VDIR;
+
+    RA8875_write_reg(RA8875_DPCR, dpcr);
+}
+
 static void swap (int16_t *x, int16_t *y)
 {
   int16_t temp = *x;

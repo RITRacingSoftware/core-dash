@@ -22,10 +22,21 @@
 #define CORE_CAN_BITRATE 1000000
 
 // Number of CAN messages that can be stored in the CAN FreeRTOS queue
-#define CORE_CAN_QUEUE_LENGTH 15
+#define CORE_CAN_QUEUE_LENGTH 32
 
 // Timeout for waiting on RX queue
-#define CORE_CAN_RX_TIMEOUT 0
+#define CORE_CAN_RX_TIMEOUT 100
+
+#define CORE_CAN_USE_MSGBUF 1
+#define CORE_CAN_TIMESTAMP 1
+#define CORE_CAN_HW_TIMESTAMP 1
+#define CORE_CAN_MSGBUF1_SIZE 1024
+#define CORE_CAN_MSGBUF2_SIZE 0
+#define CORE_CAN_MSGBUF3_SIZE 0
+#define CORE_FDCAN1_MSGBUF 1
+#define CORE_FDCAN2_MSGBUF 1
+#define CORE_FDCAN3_MSGBUF 1
+#define CORE_CAN_TIMER TIM2
 
 // Ports and pins for CAN communication
 #define CORE_FDCAN1_TX_PORT GPIOA
@@ -58,13 +69,13 @@
 #define CORE_FDCAN3_MAX_EXTENDED_FILTER_NUM 8
 
 // Auto-retransmission config
-#define CORE_FDCAN1_AUTO_RETRANSMISSION 0
+#define CORE_FDCAN1_AUTO_RETRANSMISSION 1
 #define CORE_FDCAN2_AUTO_RETRANSMISSION 0
 #define CORE_FDCAN3_AUTO_RETRANSMISSION 0
 
 // CAN FD config
-#define CORE_FDCAN1_USE_FD 0
-#define CORE_FDCAN2_USE_FD 1
+#define CORE_FDCAN1_USE_FD 1
+#define CORE_FDCAN2_USE_FD 0
 #define CORE_FDCAN3_USE_FD 0
 
 #define CORE_CAN_BUS_OFF_BLOCK 0 
@@ -160,6 +171,6 @@
 
 /******************** TIMESTAMP PARAMETERS *********************/
 /***************************************************************/
-#define CORE_TIMESTAMP_MSB TIM2
+//#define CORE_TIMESTAMP_MSB TIM2
 
 #endif //CORE_CORE_CONFIG_H

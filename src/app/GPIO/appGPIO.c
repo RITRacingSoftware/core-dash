@@ -26,3 +26,5 @@ void GPIO_init()
 	core_GPIO_digital_write(LED2_PORT, LED2_PIN, false);
 }
 
+bool GPIO_get_button1_state() { return core_GPIO_digital_read(PB1_PORT, PB1_PIN); };
+

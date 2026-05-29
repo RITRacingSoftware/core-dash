@@ -124,7 +124,7 @@ void RA8875_soft_reset(void);
 void RA8875_display_on(uint8_t on);
 void RA8875_sleep(uint8_t sleep);
 void RA8875_disable_keyscan();
-
+void RA8875_rotate_screen_180(void);
 
 /* Text functions */
 void RA8875_text_mode(void);
@@ -212,6 +212,7 @@ int8_t RA8875_get_rotation(void);
 #define RA8875_MAGENTA 0xF81F ///< Magenta Color
 #define RA8875_YELLOW 0xFFE0  ///< Yellow Color
 #define RA8875_WHITE 0xFFFF   ///< White Color
+#define RA8875_ORANGE 0xFA80  ///< Orange Color
 
 // Registers & bits
 #define RA8875_PWRR 0x01           ///< See datasheet

@@ -51,4 +51,5 @@
 #define LED2_PIN   GPIO_PIN_2
 
 void GPIO_init();
+bool GPIO_get_button1_state();
 
