@@ -7,7 +7,9 @@
 #define RA8875_CS_PIN       GPIO_PIN_15
 #define RA8875_RESET_PORT   GPIOB
 #define RA8875_RESET_PIN    GPIO_PIN_6
-                                
+     
+#define SCREEN_WIDTH  480
+#define SCREEN_HEIGHT 272
 
 typedef struct
 {
@@ -34,6 +36,20 @@ typedef struct
     const display_row_t *rows;
     uint8_t row_count;
 } display_box_t;
+
+
+typedef struct
+{
+    const char *title;
+    uint16_t title_h;
+
+    uint16_t value_h;
+
+    uint16_t x;
+    uint16_t y;
+    uint16_t w;
+    uint16_t h;
+} display_bar_t;
 
 
 uint16_t display_box_width(const display_box_t *box);
@@ -93,3 +109,14 @@ void display_update_box_value(const display_box_t *box,
                               const char *value,
                               uint16_t text_color,
                               uint16_t bg_color);
+
+void display_draw_bar(const display_bar_t *bar,
+                      char *value,
+                      uint16_t border_color,
+                      uint16_t bg_color);
+
+void display_update_bar(const display_bar_t *bar,
+                        char *value,
+                        uint16_t percentage,
+                        uint16_t fill_color);
+

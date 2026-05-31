@@ -146,3 +146,4 @@ clean:
 clean-user:
 	rm -r $(BUILD_DIR)/stm32/obj/app
 	rm -r $(BUILD_DIR)/stm32/obj/core
+	rm -r $(BUILD_DIR)/stm32/obj/driver
