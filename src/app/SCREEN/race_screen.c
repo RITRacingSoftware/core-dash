@@ -38,7 +38,7 @@
 #define BAR_X_OFFSET (BAR_WIDTH + BAR_SPACING_X)
 
 #define MIN_CELL_VOLT_LOW   300  // 3.00 V
-#define MIN_CELL_VOLT_HIGH  430  // 4.30 V
+#define MIN_CELL_VOLT_HIGH  450  // 4.50 V
                         
 #define MAX_CELL_TEMP_LOW   150  // 15 C
 #define MAX_CELL_TEMP_HIGH  600  // 60 C
@@ -62,6 +62,7 @@ enum
     MOTOR_TEMP_COLUMN,
     INVERTER_TEMP_COLUMN
 };
+
 /*
 static const uint16_t BAR_COLORS[] =
 {
@@ -69,7 +70,7 @@ static const uint16_t BAR_COLORS[] =
     0xFFE0, // YELLOW
     0xF800, // RED
 };
-
+*/
  
 static const uint16_t BAR_COLORS[] =
 {
@@ -79,7 +80,8 @@ static const uint16_t BAR_COLORS[] =
     0xFD20, // Orange
     0xF800  // Red
 };
-*/
+
+/*
 static const uint16_t BAR_COLORS[] =
 {
     0x07E0, // Green
@@ -91,7 +93,7 @@ static const uint16_t BAR_COLORS[] =
     0xFA20, // Dark Orange
     0xF800  // Red
 };
-
+*/
 
 static uint16_t calculate_percentage(uint16_t value, uint16_t low, uint16_t high)
 {

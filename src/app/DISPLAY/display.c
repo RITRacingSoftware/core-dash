@@ -9,6 +9,7 @@
 #include "appGPIO.h"
 #include "debug_screen.h"
 #include "race_screen.h"
+#include "linecar.h"
 
 #define BOTTOM_MARGIN_COMP 2
 #define DISPLAY_TEXT_SCALE 0
@@ -16,6 +17,10 @@
 #define DISPLAY_FONT_HEIGHT_SCALE0 16
 #define DISPLAY_BORDER_MARGIN 1
 #define DISPLAY_STATUS_TEXT_SCALE 2
+
+#define LINECAR_CENTER_X    ((SCREEN_WIDTH  - LINECAR_WIDTH)  / 2)
+#define LINECAR_CENTER_Y    ((SCREEN_HEIGHT - LINECAR_HEIGHT) / 2)
+#define LINECAR_COLOR       0xFB40
 
 void display_init(void)
 {
@@ -47,9 +52,13 @@ void display_init(void)
 
     RA8875_graphic_mode();
 
-     draw_debug_screen();
-    // draw_race_screen();
+    display_draw_linecar(LINECAR_CENTER_X,
+                         LINECAR_CENTER_Y,
+                         LINECAR_COLOR,
+                         RA8875_BLACK);
+    HAL_Delay (5000);
 
+    //draw_debug_screen();
 }
 
 
@@ -517,7 +526,7 @@ void display_draw_bar(const display_bar_t *bar,
 }
 
 
-void display_update_bar(const display_bar_t *bar,
+void display_update_bar(display_bar_t *bar,
                         char *value,
                         uint16_t percentage,
                         uint16_t fill_color)
@@ -526,56 +535,77 @@ void display_update_bar(const display_bar_t *bar,
 
     RA8875_graphic_mode();
 
-    uint16_t bar_clear_x = bar->x + 1;
-    uint16_t bar_clear_y = bar->y + bar->title_h;
-    uint16_t bar_clear_w = bar->w - 2;
-    uint16_t bar_clear_h = bar->h - bar->title_h - bar->value_h - 1;
-    
-    RA8875_draw_fill_rect (bar_clear_x, 
-                           bar_clear_y, 
-                           bar_clear_w, 
-                           bar_clear_h, 
-                           RA8875_BLACK);                   // CLEAR BAR
-    
-    
-    uint16_t value_clear_x = bar->x + 1;
-    uint16_t value_clear_y = bar->y + bar->h - bar->value_h + 1;
-    uint16_t value_clear_w = bar->w - 2;
-    uint16_t value_clear_h = bar->value_h - 2;
+    uint16_t bar_x = bar->x + 1;
+    uint16_t bar_y = bar->y + bar->title_h;
+    uint16_t bar_w = bar->w - 2;
+    uint16_t bar_h = bar->h - bar->title_h - bar->value_h - 1;
 
-    RA8875_draw_fill_rect(value_clear_x, 
-                          value_clear_y, 
-                          value_clear_w, 
-                          value_clear_h, 
-                          RA8875_BLACK);                   // CLEAR VALUE
-    
+    uint16_t value_x = bar->x + 1;
+    uint16_t value_y = bar->y + bar->h - bar->value_h + 1;
+    uint16_t value_w = bar->w - 2;
+    uint16_t value_h = bar->value_h - 2;
 
-    if (percentage == 0) return;
-    uint16_t new_bar_h = (percentage * bar_clear_h) / 100;
+    if (percentage > 100) percentage = 100;
 
-    if (new_bar_h >= bar_clear_h) new_bar_h = bar_clear_h;
-    uint16_t new_bar_y = bar_clear_y + bar_clear_h - new_bar_h;
+    uint16_t new_bar_h = (percentage * bar_h) / 100;
+    uint16_t old_bar_h = bar->last_fill_h;
 
-    RA8875_draw_fill_rect(bar_clear_x,
-                          new_bar_y,
-                          bar_clear_w,
-                          new_bar_h + 1,
-                          fill_color);                     // UPDATE BAR
-    
+    if (fill_color != bar->last_fill_color)
+    {
+        RA8875_draw_fill_rect(bar_x,
+                              bar_y,
+                              bar_w,
+                              bar_h,
+                              RA8875_BLACK);              // CLEAR BAR
+
+        if (new_bar_h > 0)
+        {
+            RA8875_draw_fill_rect(bar_x,
+                                  bar_y + bar_h - new_bar_h,
+                                  bar_w,
+                                  new_bar_h,
+                                  fill_color);            // REDRAW BAR
+        }
+    }
+
+    else if (new_bar_h > old_bar_h)
+    {
+        RA8875_draw_fill_rect(bar_x,
+                              bar_y + bar_h - new_bar_h,
+                              bar_w,
+                              new_bar_h - old_bar_h,
+                              fill_color);                // GROW BAR
+    }
+
+    else if (new_bar_h < old_bar_h)
+    {
+        RA8875_draw_fill_rect(bar_x,
+                              bar_y + bar_h - old_bar_h,
+                              bar_w,
+                              old_bar_h - new_bar_h,
+                              RA8875_BLACK);             // SHRINK BAR
+    }
+
+    bar->last_fill_h = new_bar_h;
+    bar->last_fill_color = fill_color;
+
+    RA8875_draw_fill_rect(value_x,
+                          value_y,
+                          value_w,
+                          value_h,
+                          RA8875_BLACK);                 // CLEAR VALUE
 
     if (value != NULL)
     {
-        uint16_t value_box_y = bar->y + bar->h - bar->value_h;
-        uint16_t value_w = display_text_width(value);
-        uint16_t value_x = bar->x + ((bar->w - value_w) / 2);
-        uint16_t value_y = value_box_y + 1;
+        uint16_t text_w = display_text_width(value);
+        uint16_t text_x = bar->x + ((bar->w - text_w) / 2);
 
         RA8875_text_mode();
         RA8875_text_scale(DISPLAY_TEXT_SCALE);
         RA8875_text_transparent_color(RA8875_WHITE);
-        RA8875_text_cursor_position(value_x, value_y);
-        RA8875_text_write(value, strlen(value));          // UPDATE VALUE
+        RA8875_text_cursor_position(text_x, value_y);
+        RA8875_text_write(value, strlen(value));         // UPDATE VALUE
 
         RA8875_graphic_mode();
-    }                                                
+    }
 }

@@ -43,7 +43,9 @@ typedef struct
     const char *title;
     uint16_t title_h;
 
-    uint16_t value_h;
+    uint16_t value_h;    
+    uint16_t last_fill_h;
+    uint16_t last_fill_color;
 
     uint16_t x;
     uint16_t y;
@@ -115,7 +117,7 @@ void display_draw_bar(const display_bar_t *bar,
                       uint16_t border_color,
                       uint16_t bg_color);
 
-void display_update_bar(const display_bar_t *bar,
+void display_update_bar(display_bar_t *bar,
                         char *value,
                         uint16_t percentage,
                         uint16_t fill_color);

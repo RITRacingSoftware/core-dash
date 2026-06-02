@@ -8,6 +8,8 @@
 #include "boot.h"
 #include "core_config.h"
 #include "rtt.h"
+#include "inputs.h"
+#include "encoder.h"
 #include "appGPIO.h"
 #include "appCAN.h"
 #include "dash.h"
@@ -60,9 +62,10 @@ void task_inputs(void *pvParameters)
 {
     (void) pvParameters;
     TickType_t next_wake_time = xTaskGetTickCount();
+
     while (true)
     {
-        if (!inputs_task()) hardfault_error_handler();
+        if (!inputs_task()) hardfault_error_handler(); 
         vTaskDelayUntil(&next_wake_time, TASK_PERIOD_INPUTS_MS);
     }
 }
