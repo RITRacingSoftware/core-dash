@@ -38,27 +38,27 @@
 #define BAR_X_OFFSET (BAR_WIDTH + BAR_SPACING_X)
 
 #define MIN_CELL_VOLT_LOW   300  // 3.00 V
-#define MIN_CELL_VOLT_HIGH  450  // 4.50 V
+#define MIN_CELL_VOLT_HIGH  435  // 4.35 V
                         
-#define MAX_CELL_TEMP_LOW   150  // 15 C
+#define MAX_CELL_TEMP_LOW   200  // 20 C
 #define MAX_CELL_TEMP_HIGH  600  // 60 C
 
 #define PACK_V_LOW          MIN_CELL_VOLT_LOW  * 135 / 10
 #define PACK_V_HIGH         MIN_CELL_VOLT_HIGH * 135 / 10
 
-#define MOTOR_TEMP_LOW      150   //  15 C
-#define MOTOR_TEMP_HIGH     1500  // 150 C
+#define MOTOR_TEMP_LOW      200   //  20 C
+#define MOTOR_TEMP_HIGH     1400  // 140 C
 
-#define INV_TEMP_LOW        150   //  15 C
+#define INV_TEMP_LOW        200   //  20 C
 #define INV_TEMP_HIGH       600   //  60 C
                                 
- #define NUM_BAR_COLORS 3
+ #define NUM_BAR_COLORS 5
 
 enum
 {
-    MIN_CELL_COLUMN = 0,
-    MAX_TEMP_COLUMN,
+    MIN_CELL_COLUMN = 0,    
     PACK_V_COLUMN,
+    MAX_TEMP_COLUMN,
     MOTOR_TEMP_COLUMN,
     INVERTER_TEMP_COLUMN
 };
@@ -104,11 +104,18 @@ static uint16_t calculate_percentage(uint16_t value, uint16_t low, uint16_t high
     return ((value - low) * 100) / (high - low);
 }
 
+static uint8_t percentage_to_color_index(uint16_t percentage)
+{
+    if (percentage >= 100) return NUM_BAR_COLORS - 1;
+
+    return (percentage * NUM_BAR_COLORS) / 100;
+}
+
 static uint16_t voltage_bar_color(uint16_t percentage)
 {
     if (percentage > 100) percentage = 100;
 
-    uint8_t index = ((100 - percentage) * (NUM_BAR_COLORS - 1)) / 100;
+    uint8_t index = percentage_to_color_index(100 - percentage);
 
     return BAR_COLORS[index];
 }
@@ -117,7 +124,7 @@ static uint16_t temperature_bar_color(uint16_t percentage)
 {
     if (percentage > 100) percentage = 100;
 
-    uint8_t index = (percentage * (NUM_BAR_COLORS - 1)) / 100;
+    uint8_t index = percentage_to_color_index(percentage);
 
     return BAR_COLORS[index];
 }
@@ -246,48 +253,48 @@ void draw_race_screen(void)
 
 void update_race_screen(void)
 {
-    DataManager_update_race_data();
+    DataManager_update_data();
     
-    if (race_dash_data.min_cell_flag)
+    if (dash_data.min_cell_flag || dash_data.screen_flag)
     {
         update_race_min_cell_bar();
-        race_dash_data.min_cell_flag = false;
+        dash_data.min_cell_flag = false;
     }
 
-    if (race_dash_data.max_temp_flag)
+    if (dash_data.max_temp_flag || dash_data.screen_flag)
     {
         update_race_max_temp_bar();
-        race_dash_data.max_temp_flag = false;
+        dash_data.max_temp_flag = false;
     }
 
-    if (race_dash_data.pack_v_flag)
+    if (dash_data.pack_v_flag || dash_data.screen_flag)
     {
         update_race_pack_v_bar();
-        race_dash_data.pack_v_flag = false;
+        dash_data.pack_v_flag = false;
     }
 
-    if (race_dash_data.motor_temp_flag)
+    if (dash_data.motor_temp_flag || dash_data.screen_flag)
     {
         update_race_motor_temp_bar();
-        race_dash_data.motor_temp_flag = false;
+        dash_data.motor_temp_flag = false;
     }
 
-    if (race_dash_data.inv_temp_flag)
+    if (dash_data.inv_temp_flag || dash_data.screen_flag)
     {
         update_race_inv_temp_bar();
-        race_dash_data.inv_temp_flag = false;
+        dash_data.inv_temp_flag = false;
     }
 
-    if (race_dash_data.vc_status_flag)
+    if (dash_data.vc_status_flag || dash_data.screen_flag)
     { 
         update_race_status_bar();
-        race_dash_data.vc_status_flag = false;
+        dash_data.vc_status_flag = false;
     }
 }
 
 void update_race_status_bar()
 {    
-    uint8_t state = race_dash_data.vc_status.vc_status_vehicle_state;
+    uint8_t state = dash_data.vc_status.vc_status_vehicle_state;
 
     switch (state)
     { 
@@ -389,9 +396,9 @@ void update_race_status_bar()
 void update_race_min_cell_bar()
 {             
     char buf[10];
-    snprintf(buf, sizeof(buf), "%u.%02u V", race_dash_data.hvbms_min_cell / 100, race_dash_data.hvbms_min_cell % 100);
+    snprintf(buf, sizeof(buf), "%u.%02u V", dash_data.hvbms_min_cell / 100, dash_data.hvbms_min_cell % 100);
 
-    uint16_t bar_percentage = calculate_percentage(race_dash_data.hvbms_min_cell, MIN_CELL_VOLT_LOW, MIN_CELL_VOLT_HIGH);
+    uint16_t bar_percentage = calculate_percentage(dash_data.hvbms_min_cell, MIN_CELL_VOLT_LOW, MIN_CELL_VOLT_HIGH);
     uint16_t bar_color = voltage_bar_color(bar_percentage);
 
     display_update_bar(&min_cell_bar, buf, bar_percentage, bar_color);
@@ -400,9 +407,9 @@ void update_race_min_cell_bar()
 void update_race_max_temp_bar()
 {
     char buf[10];
-    snprintf(buf, sizeof(buf), "%u.%01u C", race_dash_data.hvbms_max_temp / 10, race_dash_data.hvbms_max_temp % 10);
+    snprintf(buf, sizeof(buf), "%u.%01u C", dash_data.hvbms_max_temp / 10, dash_data.hvbms_max_temp % 10);
 
-    uint16_t bar_percentage = calculate_percentage(race_dash_data.hvbms_max_temp, MAX_CELL_TEMP_LOW, MAX_CELL_TEMP_HIGH);
+    uint16_t bar_percentage = calculate_percentage(dash_data.hvbms_max_temp, MAX_CELL_TEMP_LOW, MAX_CELL_TEMP_HIGH);
     uint16_t bar_color = temperature_bar_color(bar_percentage);
 
     display_update_bar(&max_temp_bar, buf, bar_percentage, bar_color);
@@ -411,9 +418,9 @@ void update_race_max_temp_bar()
 void update_race_pack_v_bar()
 {
     char buf[10];
-    snprintf(buf, sizeof(buf), "%u V", race_dash_data.hvbms_pack_v / 10);
+    snprintf(buf, sizeof(buf), "%u V", dash_data.hvbms_pack_v / 10);
 
-    uint16_t bar_percentage = calculate_percentage(race_dash_data.hvbms_pack_v, PACK_V_LOW, PACK_V_HIGH);
+    uint16_t bar_percentage = calculate_percentage(dash_data.hvbms_pack_v, PACK_V_LOW, PACK_V_HIGH);
     uint16_t bar_color = voltage_bar_color(bar_percentage);
 
     display_update_bar(&pack_v_bar, buf, bar_percentage, bar_color);
@@ -422,9 +429,9 @@ void update_race_pack_v_bar()
 void update_race_motor_temp_bar()
 {
     char buf[10];
-    snprintf(buf, sizeof(buf), "%u.%01u C", race_dash_data.max_motor_temp / 10, race_dash_data.max_motor_temp % 10);
+    snprintf(buf, sizeof(buf), "%u.%01u C", dash_data.max_motor_temp / 10, dash_data.max_motor_temp % 10);
 
-    uint16_t bar_percentage = calculate_percentage(race_dash_data.max_motor_temp, MOTOR_TEMP_LOW, MOTOR_TEMP_HIGH);
+    uint16_t bar_percentage = calculate_percentage(dash_data.max_motor_temp, MOTOR_TEMP_LOW, MOTOR_TEMP_HIGH);
     uint16_t bar_color = temperature_bar_color(bar_percentage);
 
     display_update_bar(&motor_temp_bar, buf, bar_percentage, bar_color);
@@ -433,9 +440,9 @@ void update_race_motor_temp_bar()
 void update_race_inv_temp_bar()
 {
     char buf[10];
-    snprintf(buf, sizeof(buf), "%u.%01u C", race_dash_data.max_inv_temp / 10, race_dash_data.max_inv_temp % 10);
+    snprintf(buf, sizeof(buf), "%u.%01u C", dash_data.max_inv_temp / 10, dash_data.max_inv_temp % 10);
 
-    uint16_t bar_percentage = calculate_percentage(race_dash_data.max_inv_temp, INV_TEMP_LOW, INV_TEMP_HIGH);
+    uint16_t bar_percentage = calculate_percentage(dash_data.max_inv_temp, INV_TEMP_LOW, INV_TEMP_HIGH);
     uint16_t bar_color = temperature_bar_color(bar_percentage);
 
     display_update_bar(&inv_temp_bar, buf, bar_percentage, bar_color);

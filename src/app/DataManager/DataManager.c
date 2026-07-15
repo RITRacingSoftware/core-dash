@@ -3,8 +3,7 @@
 #include <stdbool.h>
 #include "rtt.h"
 
-debug_dashboard_data_t debug_dash_data = {0};
-race_dashboard_data_t race_dash_data = {0};
+debug_dashboard_data_t dash_data = {0};
 
 //----------------------HELPERS----------------------//
 
@@ -64,6 +63,19 @@ static uint16_t calculate_max_inverter_temp()
     return max_temp;
 }
 
+static int32_t calculate_endurance_delta(void)
+{
+    int32_t minuend = sec_bus.vc_endurance_info.vc_estimated_soc;
+    int32_t subtrahend = sec_bus.vc_endurance_info.vc_relative_distance;
+
+    if (sec_bus.vc_endurance_info.vc_pack_temp_valid) 
+    {
+        uint16_t pack_temp_scaled = ((uint16_t)sec_bus.vc_endurance_info.vc_pack_temp) << 8;
+        if (pack_temp_scaled > minuend) minuend = pack_temp_scaled;
+    }
+
+    return subtrahend - minuend;
+}
 
 //------------------CHARACTER ARRAYS----------------//
 
@@ -186,217 +198,162 @@ const char* LVBMS_FAULT_MESSAGES[] =
 };
 
 
-//--------------------DEBUG DASH--------------------//
-
-void DataManager_update_debug_data()
+void DataManager_update_data()
 {
-    DataManager_update_debug_lvbms();
-    DataManager_update_debug_hvbms();
-    DataManager_update_debug_motors();
-    DataManager_update_debug_inverters();
-    DataManager_update_debug_faults();
-    DataManager_update_debug_vc_status();
-    DataManager_update_debug_controls_level();
+    DataManager_update_lvbms();
+    DataManager_update_hvbms();
+    DataManager_update_motors();
+    DataManager_update_inverters();
+    DataManager_update_faults();
+    DataManager_update_vc_status();
+    DataManager_update_controls_level();
+    DataManager_update_endurance();
 }
 
-void DataManager_update_debug_lvbms()
+void DataManager_update_lvbms()
 {
     uint16_t new_min_volt = calculate_lvbms_min_volt();
     uint16_t new_max_temp = calculate_lvbms_max_temp();
 
-    if (debug_dash_data.lvbms_min_cell != new_min_volt) 
+    if (dash_data.lvbms_min_cell != new_min_volt) 
     {
-        debug_dash_data.lvbms_min_cell = new_min_volt;
-        debug_dash_data.lvbms_flag = true;
+        dash_data.lvbms_min_cell = new_min_volt;
+        dash_data.lvbms_flag = true;
     }
 
-    if (debug_dash_data.lvbms_max_temp != new_max_temp)
+    if (dash_data.lvbms_max_temp != new_max_temp)
     {
-        debug_dash_data.lvbms_max_temp = new_max_temp;
-        debug_dash_data.lvbms_flag = true;
+        dash_data.lvbms_max_temp = new_max_temp;
+        dash_data.lvbms_flag = true;
     }
 
-    if (debug_dash_data.lvbms_pack_v != sec_bus.lvbms_pack_data.lvbms_chip_voltage)
+    if (dash_data.lvbms_pack_v != sec_bus.lvbms_pack_data.lvbms_chip_voltage)
     {
-        debug_dash_data.lvbms_pack_v = sec_bus.lvbms_pack_data.lvbms_chip_voltage;
-        debug_dash_data.lvbms_flag = true;
+        dash_data.lvbms_pack_v = sec_bus.lvbms_pack_data.lvbms_chip_voltage;
+        dash_data.lvbms_flag = true;
     }
 }
 
-void DataManager_update_debug_hvbms()
+void DataManager_update_hvbms()
 {
-    if (debug_dash_data.hvbms_min_cell != sec_bus.hvbms_cell_overview.bms_overview_volt_min)
+    if (dash_data.hvbms_min_cell != sec_bus.hvbms_cell_overview.bms_overview_volt_min)
     {
-        debug_dash_data.hvbms_min_cell = sec_bus.hvbms_cell_overview.bms_overview_volt_min;
-        debug_dash_data.hvbms_flag = true;
+        dash_data.hvbms_min_cell = sec_bus.hvbms_cell_overview.bms_overview_volt_min;
+        dash_data.min_cell_flag = true;
+        dash_data.hvbms_flag = true;
     }
 
-    if (debug_dash_data.hvbms_max_temp != sec_bus.hvbms_cell_overview.bms_overview_temp_max)
+    if (dash_data.hvbms_max_temp != sec_bus.hvbms_cell_overview.bms_overview_temp_max)
     {
-        debug_dash_data.hvbms_max_temp = sec_bus.hvbms_cell_overview.bms_overview_temp_max;
-        debug_dash_data.hvbms_flag = true;
+        dash_data.hvbms_max_temp = sec_bus.hvbms_cell_overview.bms_overview_temp_max;
+        dash_data.max_temp_flag = true;
+        dash_data.hvbms_flag = true;
     }
 
-    if (debug_dash_data.hvbms_pack_v != sec_bus.hvbms_status.bms_status_pack_voltage)
+    if (dash_data.hvbms_pack_v != sec_bus.hvbms_status.bms_status_pack_voltage)
     {
-        debug_dash_data.hvbms_pack_v = sec_bus.hvbms_status.bms_status_pack_voltage;
-        debug_dash_data.hvbms_flag = true;
-    }
-
-    if (debug_dash_data.hvbms_soc != sec_bus.hvbms_status.bms_status_soc)
-    {
-        debug_dash_data.hvbms_soc = sec_bus.hvbms_status.bms_status_soc;
-        debug_dash_data.soc_flag = true;
+        dash_data.hvbms_pack_v = sec_bus.hvbms_status.bms_status_pack_voltage;
+        dash_data.pack_v_flag = true;
+        dash_data.hvbms_flag = true;
     }
 }
 
-void DataManager_update_debug_motors()
+void DataManager_update_motors()
 {
-    if (debug_dash_data.rr_motor_temp != sec_bus.motor_temps.vc_rr_motor_temp)
+    if (dash_data.rr_motor_temp != sec_bus.motor_temps.vc_rr_motor_temp)
     {
-        debug_dash_data.rr_motor_temp = sec_bus.motor_temps.vc_rr_motor_temp;
-        debug_dash_data.motor_flag = true;
+        dash_data.rr_motor_temp = sec_bus.motor_temps.vc_rr_motor_temp;
+        dash_data.motor_flag = true;
     }
 
-    if (debug_dash_data.rl_motor_temp != sec_bus.motor_temps.vc_rl_motor_temp)
+    if (dash_data.rl_motor_temp != sec_bus.motor_temps.vc_rl_motor_temp)
     {
-        debug_dash_data.rl_motor_temp = sec_bus.motor_temps.vc_rl_motor_temp;
-        debug_dash_data.motor_flag = true;
+        dash_data.rl_motor_temp = sec_bus.motor_temps.vc_rl_motor_temp;
+        dash_data.motor_flag = true;
     }
 
-    if (debug_dash_data.fr_motor_temp != sec_bus.motor_temps.vc_fr_motor_temp)
+    if (dash_data.fr_motor_temp != sec_bus.motor_temps.vc_fr_motor_temp)
     {
-        debug_dash_data.fr_motor_temp = sec_bus.motor_temps.vc_fr_motor_temp;
-        debug_dash_data.motor_flag = true;
+        dash_data.fr_motor_temp = sec_bus.motor_temps.vc_fr_motor_temp;
+        dash_data.motor_flag = true;
     }
 
-    if (debug_dash_data.fl_motor_temp != sec_bus.motor_temps.vc_fl_motor_temp)
+    if (dash_data.fl_motor_temp != sec_bus.motor_temps.vc_fl_motor_temp)
     {
-        debug_dash_data.fl_motor_temp = sec_bus.motor_temps.vc_fl_motor_temp;
-        debug_dash_data.motor_flag = true;
+        dash_data.fl_motor_temp = sec_bus.motor_temps.vc_fl_motor_temp;
+        dash_data.motor_flag = true;
+    }    
+
+    uint16_t new_max_temp = calculate_max_motor_temp();
+
+    if (dash_data.max_motor_temp != new_max_temp)
+    {
+        dash_data.max_motor_temp = new_max_temp;
+        dash_data.motor_temp_flag = true;
     }
 }
 
-void DataManager_update_debug_inverters()
+void DataManager_update_inverters()
 {
     uint16_t new_avg_temp = calculate_avg_inverter_temp();
     uint16_t new_max_temp = calculate_max_inverter_temp();
 
-    if (debug_dash_data.avg_inv_temp != new_avg_temp)
+    if (dash_data.avg_inv_temp != new_avg_temp)
     {
-        debug_dash_data.avg_inv_temp = new_avg_temp;
-        debug_dash_data.inverter_flag = true;
+        dash_data.avg_inv_temp = new_avg_temp;
+        dash_data.inverter_flag = true;
     }
 
-    if (debug_dash_data.max_inv_temp != new_max_temp)
+    if (dash_data.max_inv_temp != new_max_temp)
     {
-        debug_dash_data.max_inv_temp = new_max_temp;
-        debug_dash_data.inverter_flag = true;
+        dash_data.max_inv_temp = new_max_temp;
+        dash_data.inv_temp_flag = true;
+        dash_data.inverter_flag = true;
     }
 }
 
-void DataManager_update_debug_faults()
+void DataManager_update_faults()
 {
-    if (debug_dash_data.vc_fault_vector != sec_bus.vc_fault_vector       ||
-        debug_dash_data.pdu_fault_vector != sec_bus.pdu_fault_vector     ||
-        debug_dash_data.hvbms_fault_vector != sec_bus.hvbms_fault_vector ||
-        debug_dash_data.lvbms_fault_vector != sec_bus.lvbms_fault_vector) 
+    if (dash_data.vc_fault_vector != sec_bus.vc_fault_vector       ||
+        dash_data.pdu_fault_vector != sec_bus.pdu_fault_vector     ||
+        dash_data.hvbms_fault_vector != sec_bus.hvbms_fault_vector ||
+        dash_data.lvbms_fault_vector != sec_bus.lvbms_fault_vector) 
     {
-        debug_dash_data.vc_fault_vector = sec_bus.vc_fault_vector;
-        debug_dash_data.pdu_fault_vector = sec_bus.pdu_fault_vector;
-        debug_dash_data.hvbms_fault_vector = sec_bus.hvbms_fault_vector;
-        debug_dash_data.lvbms_fault_vector = sec_bus.lvbms_fault_vector;
-        debug_dash_data.fault_flag = true;
+        dash_data.vc_fault_vector = sec_bus.vc_fault_vector;
+        dash_data.pdu_fault_vector = sec_bus.pdu_fault_vector;
+        dash_data.hvbms_fault_vector = sec_bus.hvbms_fault_vector;
+        dash_data.lvbms_fault_vector = sec_bus.lvbms_fault_vector;
+        dash_data.fault_flag = true;
     }
 }
 
-void DataManager_update_debug_vc_status()
+void DataManager_update_vc_status()
 {
-    if (debug_dash_data.vc_status.vc_status_vehicle_state != sec_bus.vc_status.vc_status_vehicle_state)
+    if (dash_data.vc_status.vc_status_vehicle_state != sec_bus.vc_status.vc_status_vehicle_state)
     {
-        debug_dash_data.vc_status.vc_status_vehicle_state = sec_bus.vc_status.vc_status_vehicle_state;
-        debug_dash_data.vc_status_flag = true;
+        dash_data.vc_status.vc_status_vehicle_state = sec_bus.vc_status.vc_status_vehicle_state;
+        dash_data.vc_status_flag = true;
     }
 }
 
-void DataManager_update_debug_controls_level()
+void DataManager_update_controls_level()
 {
-    if (debug_dash_data.vc_status.vc_controls_level != sec_bus.vc_status.vc_controls_level)
+    if (dash_data.vc_status.vc_controls_level != sec_bus.vc_status.vc_controls_level)
     {
-        debug_dash_data.vc_status.vc_controls_level = sec_bus.vc_status.vc_controls_level;
-        debug_dash_data.vc_controls_level_flag = true;
+        dash_data.vc_status.vc_controls_level = sec_bus.vc_status.vc_controls_level;
+        dash_data.vc_controls_level_flag = true;
     }
 }
 
-
-//--------------------RACE DASH--------------------//
-
-void DataManager_update_race_data()
+void DataManager_update_endurance()
 {
-    DataManager_update_race_vc_status();
-    DataManager_update_race_min_cell();
-    DataManager_update_race_max_temp();
-    DataManager_update_race_pack_v();
-    DataManager_update_race_motor_temp();
-    DataManager_update_race_inverter_temp();
-}
+    dash_data.endurance_flag = sec_bus.vc_endurance_info.vc_endurance_mode;
 
+    int32_t new_delta = calculate_endurance_delta();
+    // rprintf("new_delta = %u\n", new_delta);
 
-void DataManager_update_race_vc_status()
-{
-    if (race_dash_data.vc_status.vc_status_vehicle_state != sec_bus.vc_status.vc_status_vehicle_state)
+    if (dash_data.endurance_delta != new_delta && dash_data.endurance_flag)
     {
-        race_dash_data.vc_status.vc_status_vehicle_state = sec_bus.vc_status.vc_status_vehicle_state;
-        race_dash_data.vc_status_flag = true;
+        dash_data.endurance_delta = new_delta;
     }
-}
-
-void DataManager_update_race_min_cell()
-{
-    if (race_dash_data.hvbms_min_cell != sec_bus.hvbms_cell_overview.bms_overview_volt_min)
-    {
-        race_dash_data.hvbms_min_cell = sec_bus.hvbms_cell_overview.bms_overview_volt_min;
-        race_dash_data.min_cell_flag = true;
-    }
-}
-
-void DataManager_update_race_max_temp()
-{
-    if (race_dash_data.hvbms_max_temp != sec_bus.hvbms_cell_overview.bms_overview_temp_max)
-    {
-        race_dash_data.hvbms_max_temp = sec_bus.hvbms_cell_overview.bms_overview_temp_max;
-        race_dash_data.max_temp_flag = true;
-    }
-}
-
-void DataManager_update_race_pack_v()
-{
-    if (race_dash_data.hvbms_pack_v != sec_bus.hvbms_status.bms_status_pack_voltage)
-    {
-        race_dash_data.hvbms_pack_v = sec_bus.hvbms_status.bms_status_pack_voltage;
-        race_dash_data.pack_v_flag = true;
-    }
-}
-
-void DataManager_update_race_motor_temp()
-{
-    uint16_t new_max_temp = calculate_max_motor_temp();
-
-    if (race_dash_data.max_motor_temp != new_max_temp)
-    {
-        race_dash_data.max_motor_temp = new_max_temp;
-        race_dash_data.motor_temp_flag = true;
-    }
-}
-
-void DataManager_update_race_inverter_temp()
-{
-    uint16_t new_max_temp = calculate_max_inverter_temp();
-
-    if (race_dash_data.max_inv_temp != new_max_temp)
-    {
-        race_dash_data.max_inv_temp = new_max_temp;
-        race_dash_data.inv_temp_flag = true;
-    }
-}
-
+} 

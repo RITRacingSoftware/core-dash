@@ -243,7 +243,7 @@ static void pack_faults()
 
     for (int i = 0; i < VC_FAULT_COUNT && fault_index < MAX_FAULTS; i++)
     {
-        if ((debug_dash_data.vc_fault_vector >> i) & 1)
+        if ((dash_data.vc_fault_vector >> i) & 1)
         {
             faults[fault_index++] = VC_FAULT_MESSAGES[i];
             vc_fault_count++;
@@ -252,7 +252,7 @@ static void pack_faults()
 
     for (int i = 0; i < PDU_FAULT_COUNT && fault_index < MAX_FAULTS; i++)
     {
-        if ((debug_dash_data.pdu_fault_vector >> (32 + i)) & 1)
+        if ((dash_data.pdu_fault_vector >> (32 + i)) & 1)
         {
             faults[fault_index++] = PDU_FAULT_MESSAGES[i];
             pdu_fault_count++;
@@ -261,7 +261,7 @@ static void pack_faults()
 
     for (int i = 0; i < HVBMS_FAULT_COUNT && fault_index < MAX_FAULTS; i++)
     {
-        if ((debug_dash_data.hvbms_fault_vector >> i) & 1)
+        if ((dash_data.hvbms_fault_vector >> i) & 1)
         {
             faults[fault_index++] = HVBMS_FAULT_MESSAGES[i];
             hvbms_fault_count++;
@@ -270,7 +270,7 @@ static void pack_faults()
 
     for (int i = 0; i < LVBMS_FAULT_COUNT && fault_index < MAX_FAULTS; i++)
     {
-        if ((debug_dash_data.lvbms_fault_vector >> i) & 1)
+        if ((dash_data.lvbms_fault_vector >> i) & 1)
         {
             faults[fault_index++] = LVBMS_FAULT_MESSAGES[i];
             lvbms_fault_count++;
@@ -500,10 +500,7 @@ void draw_debug_screen(void)
         "CONTROLS LEVEL",
         RA8875_WHITE,
         RA8875_BLACK
-    );
-
-
-    HAL_Delay(500); 
+    ); 
 }
 
 
@@ -511,48 +508,48 @@ void draw_debug_screen(void)
 void update_debug_screen(void)
 {
 
-    DataManager_update_debug_data();
+    DataManager_update_data();
     
-    if (debug_dash_data.hvbms_flag)
+    if (dash_data.hvbms_flag || dash_data.screen_flag)
     {
         update_debug_hvbms_box();
-        debug_dash_data.hvbms_flag = false;
+        dash_data.hvbms_flag = false;
     }
 
-    if (debug_dash_data.lvbms_flag)
+    if (dash_data.lvbms_flag || dash_data.screen_flag)
     {
         update_debug_lvbms_box();
-        debug_dash_data.lvbms_flag = false;
+        dash_data.lvbms_flag = false;
     }
 
-    if (debug_dash_data.motor_flag)
+    if (dash_data.motor_flag || dash_data.screen_flag)
     {
         update_debug_motor_box();
-        debug_dash_data.motor_flag = false;
+        dash_data.motor_flag = false;
     }
 
-    if (debug_dash_data.inverter_flag)
+    if (dash_data.inverter_flag || dash_data.screen_flag)
     {
         update_debug_inverter_box();
-        debug_dash_data.inverter_flag = false;
+        dash_data.inverter_flag = false;
     }
 
-    if (debug_dash_data.fault_flag)
+    if (dash_data.fault_flag || dash_data.screen_flag)
     {
         update_debug_fault_log();
-        debug_dash_data.fault_flag = false;
+        dash_data.fault_flag = false;
     }
 
-    if (debug_dash_data.vc_status_flag)
+    if (dash_data.vc_status_flag || dash_data.screen_flag)
     {
         update_debug_status_bar();
-        debug_dash_data.vc_status_flag = false;
+        dash_data.vc_status_flag = false;
     }
 
-    if (debug_dash_data.vc_controls_level_flag)
+    if (dash_data.vc_controls_level_flag || dash_data.screen_flag)
     {
         update_debug_controls_level();
-        debug_dash_data.vc_controls_level_flag = false;
+        dash_data.vc_controls_level_flag = false;
     }
 }
 
@@ -563,7 +560,7 @@ void update_debug_hvbms_box()
 
     // HV MIN CELL VOLT
 
-    if (min_cell_volt_irr(debug_dash_data.hvbms_min_cell))
+    if (min_cell_volt_irr(dash_data.hvbms_min_cell))
     {
         snprintf(buf, sizeof(buf), "-.-- V");
         display_update_box_value(&hv_bms_box, HVBMS_MIN_CELL_ROW, buf, RA8875_WHITE, RA8875_BLACK);
@@ -571,13 +568,13 @@ void update_debug_hvbms_box()
 
     else
     { 
-        snprintf(buf, sizeof(buf), "%u.%02u V", debug_dash_data.hvbms_min_cell / 100, debug_dash_data.hvbms_min_cell % 100);
-        display_update_box_value(&hv_bms_box, HVBMS_MIN_CELL_ROW, buf, min_cell_volt_color(debug_dash_data.hvbms_min_cell), RA8875_BLACK);
+        snprintf(buf, sizeof(buf), "%u.%02u V", dash_data.hvbms_min_cell / 100, dash_data.hvbms_min_cell % 100);
+        display_update_box_value(&hv_bms_box, HVBMS_MIN_CELL_ROW, buf, min_cell_volt_color(dash_data.hvbms_min_cell), RA8875_BLACK);
     }
 
     // HV MAX CELL TEMP
 
-    if (max_cell_temp_irr(debug_dash_data.hvbms_max_temp))
+    if (max_cell_temp_irr(dash_data.hvbms_max_temp))
     {
         snprintf(buf, sizeof(buf), "--.- C");
         display_update_box_value(&hv_bms_box, HVBMS_MAX_TEMP_ROW, buf, RA8875_WHITE, RA8875_BLACK);
@@ -585,13 +582,13 @@ void update_debug_hvbms_box()
 
     else
     {    
-        snprintf(buf, sizeof(buf), "%2u.%01u C", debug_dash_data.hvbms_max_temp / 10, debug_dash_data.hvbms_min_cell % 10);
-        display_update_box_value(&hv_bms_box, HVBMS_MAX_TEMP_ROW, buf, max_cell_temp_color(debug_dash_data.hvbms_max_temp), RA8875_BLACK);
+        snprintf(buf, sizeof(buf), "%2u.%01u C", dash_data.hvbms_max_temp / 10, dash_data.hvbms_min_cell % 10);
+        display_update_box_value(&hv_bms_box, HVBMS_MAX_TEMP_ROW, buf, max_cell_temp_color(dash_data.hvbms_max_temp), RA8875_BLACK);
     }  
 
     // HV PACK VOLTAGE
     
-    if (hv_pack_irr(debug_dash_data.hvbms_pack_v))
+    if (hv_pack_irr(dash_data.hvbms_pack_v))
     {
         snprintf(buf, sizeof(buf), " --- V");
         display_update_box_value(&hv_bms_box, HVBMS_PACK_V_ROW, buf, RA8875_WHITE, RA8875_BLACK);
@@ -599,8 +596,8 @@ void update_debug_hvbms_box()
 
     else
     {
-        snprintf(buf, sizeof(buf), "%4u V", debug_dash_data.hvbms_pack_v / 10);
-        display_update_box_value(&hv_bms_box, HVBMS_PACK_V_ROW, buf, hv_pack_color(debug_dash_data.hvbms_pack_v), RA8875_BLACK);
+        snprintf(buf, sizeof(buf), "%4u V", dash_data.hvbms_pack_v / 10);
+        display_update_box_value(&hv_bms_box, HVBMS_PACK_V_ROW, buf, hv_pack_color(dash_data.hvbms_pack_v), RA8875_BLACK);
     }
 }
 
@@ -611,7 +608,7 @@ void update_debug_lvbms_box()
 
     // LV MIN CELL VOLT
 
-    if (min_cell_volt_irr(debug_dash_data.lvbms_min_cell))
+    if (min_cell_volt_irr(dash_data.lvbms_min_cell))
     {
         snprintf(buf, sizeof(buf), "-.-- V");
         display_update_box_value(&lv_bms_box, LVBMS_MIN_CELL_ROW, buf, RA8875_WHITE, RA8875_BLACK);
@@ -619,13 +616,13 @@ void update_debug_lvbms_box()
 
     else
     {
-        snprintf(buf, sizeof(buf), "%u.%02u V", debug_dash_data.lvbms_min_cell / 100, debug_dash_data.lvbms_min_cell % 100);
-        display_update_box_value(&lv_bms_box, LVBMS_MIN_CELL_ROW, buf, min_cell_volt_color(debug_dash_data.lvbms_min_cell), RA8875_BLACK);
+        snprintf(buf, sizeof(buf), "%u.%02u V", dash_data.lvbms_min_cell / 100, dash_data.lvbms_min_cell % 100);
+        display_update_box_value(&lv_bms_box, LVBMS_MIN_CELL_ROW, buf, min_cell_volt_color(dash_data.lvbms_min_cell), RA8875_BLACK);
     }
 
     // LV MAX CELL TEMP
 
-    if (max_cell_temp_irr(debug_dash_data.lvbms_max_temp))
+    if (max_cell_temp_irr(dash_data.lvbms_max_temp))
     {
         snprintf(buf, sizeof(buf), "--.- C");
         display_update_box_value(&lv_bms_box, LVBMS_MAX_TEMP_ROW, buf, RA8875_WHITE, RA8875_BLACK);
@@ -633,13 +630,13 @@ void update_debug_lvbms_box()
 
     else
     {
-        snprintf(buf, sizeof(buf), "%2u.%01u C", debug_dash_data.lvbms_max_temp / 10, debug_dash_data.lvbms_max_temp % 10);
-        display_update_box_value(&lv_bms_box, LVBMS_MAX_TEMP_ROW, buf, max_cell_temp_color(debug_dash_data.lvbms_max_temp), RA8875_BLACK);
+        snprintf(buf, sizeof(buf), "%2u.%01u C", dash_data.lvbms_max_temp / 10, dash_data.lvbms_max_temp % 10);
+        display_update_box_value(&lv_bms_box, LVBMS_MAX_TEMP_ROW, buf, max_cell_temp_color(dash_data.lvbms_max_temp), RA8875_BLACK);
     }
 
     // LV PACK VOLTAGE
 
-    if (lv_pack_irr(debug_dash_data.lvbms_pack_v))
+    if (lv_pack_irr(dash_data.lvbms_pack_v))
     {
         snprintf(buf, sizeof(buf), "--.- V");
         display_update_box_value(&lv_bms_box, LVBMS_PACK_V_ROW, buf, RA8875_WHITE, RA8875_BLACK);
@@ -647,8 +644,8 @@ void update_debug_lvbms_box()
 
     else
     {
-        snprintf(buf, sizeof(buf), "%2u.%01u V", debug_dash_data.lvbms_pack_v / 100, (debug_dash_data.lvbms_pack_v % 100) / 10);
-        display_update_box_value(&lv_bms_box, LVBMS_PACK_V_ROW, buf, lv_pack_color(debug_dash_data.lvbms_pack_v), RA8875_BLACK);
+        snprintf(buf, sizeof(buf), "%2u.%01u V", dash_data.lvbms_pack_v / 100, (dash_data.lvbms_pack_v % 100) / 10);
+        display_update_box_value(&lv_bms_box, LVBMS_PACK_V_ROW, buf, lv_pack_color(dash_data.lvbms_pack_v), RA8875_BLACK);
     }
 }
 
@@ -659,7 +656,7 @@ void update_debug_motor_box()
 
     // FR MOTOR TEMP
 
-    if (motor_temp_irr(debug_dash_data.fr_motor_temp))
+    if (motor_temp_irr(dash_data.fr_motor_temp))
     {
         snprintf(buf, sizeof(buf), "---.- C");
         display_update_box_value(&motor_box, FR_MOTOR_TEMP_ROW, buf, RA8875_WHITE, RA8875_BLACK);
@@ -667,13 +664,13 @@ void update_debug_motor_box()
 
     else
     {
-        snprintf(buf, sizeof(buf), "%3u.%01u C", debug_dash_data.fr_motor_temp / 10, debug_dash_data.fr_motor_temp % 10);
-        display_update_box_value(&motor_box, FR_MOTOR_TEMP_ROW, buf, motor_temp_color(debug_dash_data.fr_motor_temp), RA8875_BLACK);
+        snprintf(buf, sizeof(buf), "%3u.%01u C", dash_data.fr_motor_temp / 10, dash_data.fr_motor_temp % 10);
+        display_update_box_value(&motor_box, FR_MOTOR_TEMP_ROW, buf, motor_temp_color(dash_data.fr_motor_temp), RA8875_BLACK);
     }
 
     // FL MOTOR TEMP
 
-    if (motor_temp_irr(debug_dash_data.fl_motor_temp))
+    if (motor_temp_irr(dash_data.fl_motor_temp))
     {
         snprintf(buf, sizeof(buf), "---.- C");
         display_update_box_value(&motor_box, FL_MOTOR_TEMP_ROW, buf, RA8875_WHITE, RA8875_BLACK);
@@ -681,27 +678,27 @@ void update_debug_motor_box()
 
     else
     {
-        snprintf(buf, sizeof(buf), "%3u.%01u C", debug_dash_data.fl_motor_temp / 10, debug_dash_data.fl_motor_temp % 10);
-        display_update_box_value(&motor_box, FL_MOTOR_TEMP_ROW, buf, motor_temp_color(debug_dash_data.fl_motor_temp), RA8875_BLACK);
+        snprintf(buf, sizeof(buf), "%3u.%01u C", dash_data.fl_motor_temp / 10, dash_data.fl_motor_temp % 10);
+        display_update_box_value(&motor_box, FL_MOTOR_TEMP_ROW, buf, motor_temp_color(dash_data.fl_motor_temp), RA8875_BLACK);
     }
 
     // RR MOTOR TEMP
 
-    if (motor_temp_irr(debug_dash_data.rr_motor_temp))
+    if (motor_temp_irr(dash_data.rr_motor_temp))
     {
         snprintf(buf, sizeof(buf), "---.- C");
-        display_update_box_value(&motor_box, FR_MOTOR_TEMP_ROW, buf, RA8875_WHITE, RA8875_BLACK);
+        display_update_box_value(&motor_box, RR_MOTOR_TEMP_ROW, buf, RA8875_WHITE, RA8875_BLACK);
     }
 
     else
     {
-        snprintf(buf, sizeof(buf), "%3u.%01u C", debug_dash_data.rr_motor_temp / 10, debug_dash_data.rr_motor_temp % 10);
-        display_update_box_value(&motor_box, RR_MOTOR_TEMP_ROW, buf, motor_temp_color(debug_dash_data.rr_motor_temp), RA8875_BLACK);
+        snprintf(buf, sizeof(buf), "%3u.%01u C", dash_data.rr_motor_temp / 10, dash_data.rr_motor_temp % 10);
+        display_update_box_value(&motor_box, RR_MOTOR_TEMP_ROW, buf, motor_temp_color(dash_data.rr_motor_temp), RA8875_BLACK);
     }
 
     // RL MOTOR TEMP
 
-    if (motor_temp_irr(debug_dash_data.rl_motor_temp))
+    if (motor_temp_irr(dash_data.rl_motor_temp))
     {
         snprintf(buf, sizeof(buf), "---.- C");
         display_update_box_value(&motor_box, RL_MOTOR_TEMP_ROW, buf, RA8875_WHITE, RA8875_BLACK);
@@ -709,8 +706,8 @@ void update_debug_motor_box()
 
     else
     {
-        snprintf(buf, sizeof(buf), "%3u.%01u C", debug_dash_data.rl_motor_temp / 10, debug_dash_data.rl_motor_temp % 10);
-        display_update_box_value(&motor_box, RL_MOTOR_TEMP_ROW, buf, motor_temp_color(debug_dash_data.rl_motor_temp), RA8875_BLACK);
+        snprintf(buf, sizeof(buf), "%3u.%01u C", dash_data.rl_motor_temp / 10, dash_data.rl_motor_temp % 10);
+        display_update_box_value(&motor_box, RL_MOTOR_TEMP_ROW, buf, motor_temp_color(dash_data.rl_motor_temp), RA8875_BLACK);
     }
 }
 
@@ -721,7 +718,7 @@ void update_debug_inverter_box()
 
     // AVG INVERTER TEMP
 
-    if (inv_temp_irr(debug_dash_data.avg_inv_temp))
+    if (inv_temp_irr(dash_data.avg_inv_temp))
     {
         snprintf(buf, sizeof(buf), "--.- C");
         display_update_box_value(&inverter_box, INV_TEMP_AVG_ROW, buf, RA8875_WHITE, RA8875_BLACK);
@@ -729,13 +726,13 @@ void update_debug_inverter_box()
 
     else
     {
-        snprintf(buf, sizeof(buf), "%2u.%01u C", debug_dash_data.avg_inv_temp / 10, debug_dash_data.avg_inv_temp % 10);
-        display_update_box_value(&inverter_box, INV_TEMP_AVG_ROW, buf, inv_temp_color(debug_dash_data.avg_inv_temp), RA8875_BLACK); 
+        snprintf(buf, sizeof(buf), "%2u.%01u C", dash_data.avg_inv_temp / 10, dash_data.avg_inv_temp % 10);
+        display_update_box_value(&inverter_box, INV_TEMP_AVG_ROW, buf, inv_temp_color(dash_data.avg_inv_temp), RA8875_BLACK); 
     }
 
     // MAX INVERTER TEMP
 
-    if (inv_temp_irr(debug_dash_data.max_inv_temp))
+    if (inv_temp_irr(dash_data.max_inv_temp))
     {
         snprintf(buf, sizeof(buf), "--.- C");
         display_update_box_value(&inverter_box, INV_TEMP_MAX_ROW, buf, RA8875_WHITE, RA8875_BLACK);
@@ -743,8 +740,8 @@ void update_debug_inverter_box()
 
     else
     {
-        snprintf(buf, sizeof(buf), "%2u.%01u C", debug_dash_data.max_inv_temp / 10, debug_dash_data.max_inv_temp % 10);
-        display_update_box_value(&inverter_box, INV_TEMP_MAX_ROW, buf, inv_temp_color(debug_dash_data.avg_inv_temp), RA8875_BLACK);
+        snprintf(buf, sizeof(buf), "%2u.%01u C", dash_data.max_inv_temp / 10, dash_data.max_inv_temp % 10);
+        display_update_box_value(&inverter_box, INV_TEMP_MAX_ROW, buf, inv_temp_color(dash_data.avg_inv_temp), RA8875_BLACK);
     }
 }
 
@@ -781,7 +778,7 @@ void update_debug_fault_log()
 
 void update_debug_status_bar()
 {
-    uint8_t state = debug_dash_data.vc_status.vc_status_vehicle_state;
+    uint8_t state = dash_data.vc_status.vc_status_vehicle_state;
 
     switch (state)
     {
@@ -883,7 +880,7 @@ void update_debug_status_bar()
 
 void update_debug_controls_level()
 {
-    uint8_t level = debug_dash_data.vc_status.vc_controls_level;
+    uint8_t level = dash_data.vc_status.vc_controls_level;
 
     switch (level)
     {

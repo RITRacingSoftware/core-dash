@@ -19,6 +19,7 @@ typedef struct
 {
     struct sensor_dbc_dash_inputs_d inputs; 
 
+    struct sensor_dbc_vc_endurance_info_t vc_endurance_info;
     struct main_dbc_vc_status_d vc_status;
 
     uint64_t vc_fault_vector;

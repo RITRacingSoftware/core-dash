@@ -9,6 +9,7 @@
 #include "appGPIO.h"
 #include "debug_screen.h"
 #include "race_screen.h"
+#include "DataManager.h"
 #include "linecar.h"
 
 #define BOTTOM_MARGIN_COMP 2
@@ -52,13 +53,10 @@ void display_init(void)
 
     RA8875_graphic_mode();
 
-    display_draw_linecar(LINECAR_CENTER_X,
-                         LINECAR_CENTER_Y,
-                         LINECAR_COLOR,
-                         RA8875_BLACK);
-    HAL_Delay (5000);
+    display_draw_linecar(LINECAR_CENTER_X, LINECAR_CENTER_Y, LINECAR_COLOR, RA8875_BLACK);
+    HAL_Delay (1000);
 
-    //draw_debug_screen();
+    draw_debug_screen();
 }
 
 
@@ -76,11 +74,7 @@ static uint16_t display_text_height(void)
 
 static uint16_t display_text_width(const char *text)
 {
-    if (text == NULL)
-    {
-        return 0;
-    }
-
+    if (text == NULL) return 0;
     return strlen(text) * display_char_width();
 }
 
@@ -92,10 +86,7 @@ static uint16_t display_max_label_width(const display_box_t *box)
     {
         uint16_t w = display_text_width(box->rows[i].label);
 
-        if (w > max_w)
-        {
-            max_w = w;
-        }
+        if (w > max_w) max_w = w;
     }
 
     return max_w;
@@ -172,10 +163,7 @@ static uint16_t display_scaled_text_height(uint8_t scale)
 static uint16_t display_scaled_text_width(const char *text,
                                           uint8_t scale)
 {
-    if (text == NULL)
-    {
-        return 0;
-    }
+    if (text == NULL) return 0;
 
     return strlen(text)
          * display_scaled_char_width(scale);
@@ -190,10 +178,7 @@ void display_draw_box(const display_box_t *box,
                       uint16_t border_color,
                       uint16_t bg_color)
 {
-    if (box == NULL)
-    {
-        return;
-    }
+    if (box == NULL) return;
 
     uint16_t box_w = display_box_width(box);
     uint16_t box_h = display_box_height(box);
@@ -224,10 +209,7 @@ void display_draw_box(const display_box_t *box,
 void display_draw_box_labels(const display_box_t *box,
                              uint16_t text_color)
 {
-    if (box == NULL || box->rows == NULL)
-    {
-        return;
-    }
+    if (box == NULL || box->rows == NULL) return;
 
     RA8875_text_mode();
     RA8875_text_scale(DISPLAY_TEXT_SCALE);
@@ -237,10 +219,7 @@ void display_draw_box_labels(const display_box_t *box,
     {
         const display_row_t *row = &box->rows[i];
 
-        if (row->label == NULL)
-        {
-            continue;
-        }
+        if (row->label == NULL) continue;
 
         RA8875_text_cursor_position(
             display_label_x(box),
@@ -260,15 +239,8 @@ void display_update_row_value(const display_box_t *box,
                               uint16_t text_color,
                               uint16_t bg_color)
 {
-    if (box == NULL || box->rows == NULL || value == NULL)
-    {
-        return;
-    }
-
-    if (row_index >= box->row_count)
-    {
-        return;
-    }
+    if (box == NULL || box->rows == NULL || value == NULL) return;
+    if (row_index >= box->row_count) return;
 
     uint16_t value_x = display_value_x(box);
     uint16_t y = display_row_y(box, row_index);
@@ -323,7 +295,7 @@ void display_status_banner(uint16_t x,
                            uint16_t bg_color)
 {
 
-    if (status == NULL) {return;}
+    if (status == NULL) return;
 
     uint16_t text_w = display_scaled_text_width(status, text_scale);
     uint16_t text_h = display_scaled_text_height(text_scale);
@@ -375,10 +347,7 @@ void display_fault_log(uint16_t x,
                        uint16_t border_color,
                        uint16_t bg_color)
 {
-    if (title == NULL || faults == NULL)
-    {
-        return;
-    }
+    if (title == NULL || faults == NULL) return;
 
     uint8_t fault_count =
         vc_fault_count + pdu_fault_count + hvbms_fault_count + lvbms_fault_count;
@@ -417,14 +386,11 @@ void display_fault_log(uint16_t x,
 
     for (uint8_t i = 0; i < (fault_count - 1) && i < (max_lines - 1); i++)
     {
-        if (faults[i] == NULL)
-        {
-            continue;
-        }
+        if (faults[i] == NULL) continue;
 
         uint16_t fault_color;
 
-        if (i < vc_fault_count)
+        if (i < vc_fault_count) 
         {
             fault_color = vc_color;
         }
@@ -457,6 +423,7 @@ void display_fault_log(uint16_t x,
         );
     }
 
+    // If there are too many faults to print: 
     if (fault_count > max_lines && max_lines > 0)
     {
         char buf[16];
@@ -550,7 +517,8 @@ void display_update_bar(display_bar_t *bar,
     uint16_t new_bar_h = (percentage * bar_h) / 100;
     uint16_t old_bar_h = bar->last_fill_h;
 
-    if (fill_color != bar->last_fill_color)
+    // || dash_data.screen_flag is needed for multi screen displays
+    if (fill_color != bar->last_fill_color || dash_data.screen_flag)
     {
         RA8875_draw_fill_rect(bar_x,
                               bar_y,

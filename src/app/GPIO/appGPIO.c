@@ -41,5 +41,6 @@ void GPIO_init()
     HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 }
 
-bool GPIO_get_button1_state() {return core_GPIO_digital_read(PB1_PORT, PB1_PIN);}
+bool GPIO_get_right_paddle_state() {return core_GPIO_digital_read(PB1_PORT, PB1_PIN);}
+bool GPIO_get_enc1_pb_state()  {return core_GPIO_digital_read(PBEN1_PORT, PBEN1_PIN);}
 

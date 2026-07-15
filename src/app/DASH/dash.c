@@ -3,21 +3,19 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "clock.h"
-#include "rtt.h"
-#include "gpio.h"
-#include "boot.h"
+#include "core.h"
 
 #include "config.h"
 
 #include "appCAN.h"
 #include "appGPIO.h"
 #include "display.h"
-#include "inputs.h"
+#include "peripherals.h"
 #include "appCAN.h"
 #include "DataManager.h"
 #include "debug_screen.h"
 #include "race_screen.h"
+#include "neopixel.h"
 
 typedef enum
 {
@@ -26,15 +24,15 @@ typedef enum
 } screen_id_t;
 
 static screen_id_t current_screen = SCREEN_DEBUG;
-static uint8_t last_screen_selection = 255;
+static uint8_t last_screen_selection = SCREEN_DEBUG;
 
 void dash_update(void)
 {
     uint8_t poll = enc2.current_poll;
 
-    if (poll != last_screen_selection && sec_bus.vc_status.vc_status_vehicle_state != READY_TO_DRIVE_STATE)
+    if (poll != last_screen_selection)
     {
-        // dash_data.screen_flag = true;
+        dash_data.screen_flag = true;
         last_screen_selection = poll;
 
         if (poll == 0)
@@ -51,19 +49,21 @@ void dash_update(void)
 
     if (current_screen == SCREEN_DEBUG) update_debug_screen();
     else if (current_screen == SCREEN_RACE) update_race_screen();
+    dash_data.screen_flag = false;
 }
 
 
 bool dash_init() {
     if (!core_clock_init()) return false;
+    core_timestamp_init();
     core_heartbeat_init(LED1_PORT, LED1_PIN);
     core_RTT_init();
     GPIO_init();
-    encoders_init();
+    encoders_init();    
+    neopixel_init(); soc_startup();
     display_init();
     if(!CAN_init()) return false;
     core_boot_init();
-
 
     return true;
 }
@@ -78,7 +78,16 @@ bool dash_task()
 bool inputs_task()
 {
     CAN_send_input_data();
-    // rprintf("Button #1: %u\n", sec_bus.inputs.dash_button1);
+    return true;
+}
+
+bool soc_bar_task()
+{
+    if (dash_data.endurance_flag)
+    {
+        update_endurance_neopixels(dash_data.endurance_delta);
+    }
+
     return true;
 }
 

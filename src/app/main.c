@@ -8,7 +8,7 @@
 #include "boot.h"
 #include "core_config.h"
 #include "rtt.h"
-#include "inputs.h"
+#include "peripherals.h"
 #include "encoder.h"
 #include "appGPIO.h"
 #include "appCAN.h"
@@ -23,17 +23,19 @@
 #define TASK_PERIOD_HEARTBEAT_MS  200
 #define TASK_PERIOD_DISPLAY_MS    200
 #define TASK_PERIOD_INPUTS_MS     10
+#define TASK_PERIOD_SOC_BAR_MS    1000
 
 #define TASK_PRIORITY_CAN_RX   (tskIDLE_PRIORITY + 2)
 #define TASK_PRIORITY_CAN_TX   (tskIDLE_PRIORITY + 2)
 #define TASK_PRIORITY_DISPLAY  (tskIDLE_PRIORITY + 1)
 #define TASK_PRIORITY_INPUTS   (tskIDLE_PRIORITY + 1)
+#define TASK_PRIORITY_SOC_BAR  (tskIDLE_PRIORITY + 1)
 
 static void hardfault_error_handler();
 static void stack_overflow_error_handler();
 
 
-void heartbeat_task(void *pvParameters) 
+void heartbeat_task(void *pvParameters) // 5 Hz
 {
     (void) pvParameters;
     TickType_t next_wake_time = xTaskGetTickCount();
@@ -46,7 +48,7 @@ void heartbeat_task(void *pvParameters)
 }
 
 
-void task_display(void *pvParameters)
+void task_display(void *pvParameters) // 5 Hz
 {
     (void) pvParameters;
     TickType_t next_wake_time = xTaskGetTickCount();
@@ -58,7 +60,7 @@ void task_display(void *pvParameters)
 }
 
 
-void task_inputs(void *pvParameters)
+void task_inputs(void *pvParameters) // 100 Hz
 {
     (void) pvParameters;
     TickType_t next_wake_time = xTaskGetTickCount();
@@ -67,6 +69,19 @@ void task_inputs(void *pvParameters)
     {
         if (!inputs_task()) hardfault_error_handler(); 
         vTaskDelayUntil(&next_wake_time, TASK_PERIOD_INPUTS_MS);
+    }
+}
+
+
+void task_soc_bar(void *pvParameters) // 1 Hz
+{
+    (void) pvParameters;
+    TickType_t next_wake_time = xTaskGetTickCount();
+
+    while (true)
+    {
+        if (!soc_bar_task()) hardfault_error_handler();
+        vTaskDelayUntil(&next_wake_time, TASK_PERIOD_SOC_BAR_MS);
     }
 }
 
@@ -100,6 +115,9 @@ int main(void) {
     if (err != pdPASS) hardfault_error_handler();
 
     err = xTaskCreate(task_inputs, "100Hz", 2000, NULL, TASK_PRIORITY_INPUTS, NULL);
+    if (err != pdPASS) hardfault_error_handler();
+
+    err = xTaskCreate(task_soc_bar, "1Hz", 2000, NULL, TASK_PRIORITY_SOC_BAR, NULL);
     if (err != pdPASS) hardfault_error_handler();
 
     err = xTaskCreate(task_CAN_rx, "CAN RX", 1000, NULL, TASK_PRIORITY_CAN_RX, NULL);

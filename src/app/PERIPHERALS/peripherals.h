@@ -22,4 +22,6 @@ extern encoder_t enc2;
 extern encoder_t enc3;
 
 void encoders_init(void);
+void update_endurance_neopixels(int32_t delta);
+void soc_startup(void);
 
