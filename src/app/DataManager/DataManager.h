@@ -52,6 +52,7 @@ typedef struct
     bool endurance_flag;
     bool vc_status_flag;
     bool fault_flag;
+    bool vc_driving_event_flag;
     
     bool min_cell_flag;
     bool max_temp_flag;
@@ -87,3 +88,4 @@ void DataManager_update_vc_status(void);
 void DataManager_update_faults(void);
 void DataManager_update_controls_level(void);
 void DataManager_update_endurance(void);
+void DataManaager_update_driving_event(void);

@@ -99,6 +99,14 @@ const char* VC_CONTROLS_LEVELS[] =
     "SKIDPAD"
 };
 
+const char* VC_CONTROLS_EVENT[] =
+{
+    "AUTOCROSS",
+    "AXCELL",
+    "SKIDPAD",
+    "ENDURANCE"
+};
+
 const char* VC_FAULT_MESSAGES[] = 
 {
     "PDU SHUTDOWN",
@@ -208,6 +216,7 @@ void DataManager_update_data()
     DataManager_update_vc_status();
     DataManager_update_controls_level();
     DataManager_update_endurance();
+    DataManager_update_driving_event();
 }
 
 void DataManager_update_lvbms()
@@ -358,10 +367,10 @@ void DataManager_update_endurance()
     }
 } 
 
-void DataManager_update_controls_event(){
-    if(dash_data.vc_status.vc_controls_event != sec_bus.vc_status.vc_controls_event){
-        dash_data.vc_status.vc_controls_event = sec_bus.vc_status.vc_controls_event;
-        dash_data.vc_controls_event_flag = true;
+void DataManager_update_driving_event(){
+    if(dash_data.vc_status.vc_driving_event != sec_bus.vc_status.vc_driving_event){
+        dash_data.vc_status.vc_driving_event = sec_bus.vc_status.vc_driving_event;
+        dash_data.vc_driving_event_flag = true;
 
     }
 

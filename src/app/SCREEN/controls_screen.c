@@ -110,32 +110,29 @@ void draw_controls_screen(void){
 }
 
 
-void update_controls_screen(void){
-}
-
-void update_controls_mode(void){
-    uint8_t ControlsMode = dash_data.vc_status.vc_controls_level;
+void update_controls_driving_event(void){
+    //uint8_t event = dash_data.vc_status.vc_driving_event;
 
 
-    switch(ControlsMode){
-        case ControlsMode_ENDURANCE: {
+    switch(event){
+        case ENDURANCE: {
 
             break;
         }
             
-        case ControlsMode_AUTOCROSS: {
+        case AUTOCROSS: {
 
             break;
         }
 
 
-        case ControlsMode_SKIDPAD: {
+        case SKIDPAD: {
 
             break;
         }
 
 
-        case ControlsMode_ACCEL: {
+        case ACCEL: {
 
             break;
         }
@@ -144,6 +141,5 @@ void update_controls_mode(void){
 
 }
 
-void update_controls_parameters(void){
 
-}*/
+
