@@ -577,3 +577,19 @@ void display_update_bar(display_bar_t *bar,
         RA8875_graphic_mode();
     }
 }
+
+void display_controls_parameters_log(uint16_t x,
+                       uint16_t y,
+                       uint16_t w,
+                       uint16_t h,
+                       uint16_t title_h,
+                       uint16_t margin_x,
+                       uint16_t margin_y,
+                       uint16_t row_gap,
+                       uint8_t text_scale,
+                       const char *title){
+    if(title == NULL) return;
+
+
+    //uint8_t parameters_count = 
+}

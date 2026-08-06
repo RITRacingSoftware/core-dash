@@ -19,6 +19,7 @@
 #define LED_CENTER_INDEX 5
 #define SIDE_LED_COUNT   5
 
+
 //---------------- ENCODERS ----------------//
 
 encoder_t enc1 = {0};

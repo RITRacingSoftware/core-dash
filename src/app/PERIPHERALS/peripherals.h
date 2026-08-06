@@ -11,7 +11,7 @@
 
 // Encoder 2
 #define ENC2_MIN 0
-#define ENC2_MAX 1
+#define ENC2_MAX 2
 
 // Encoder 3
 #define ENC3_MIN 0

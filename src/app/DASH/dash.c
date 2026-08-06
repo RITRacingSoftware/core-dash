@@ -16,11 +16,13 @@
 #include "debug_screen.h"
 #include "race_screen.h"
 #include "neopixel.h"
+#include "controls_screen.h"
 
 typedef enum
 {
     SCREEN_DEBUG = 0,
     SCREEN_RACE,
+    SCREEN_CONTROLS,
 } screen_id_t;
 
 static screen_id_t current_screen = SCREEN_DEBUG;
@@ -44,6 +46,10 @@ void dash_update(void)
         {
             current_screen = SCREEN_RACE;
             draw_race_screen();
+        }
+        else if (poll == 2){
+            current_screen = SCREEN_CONTROLS;
+            draw_controls_screen();
         }
     }
 

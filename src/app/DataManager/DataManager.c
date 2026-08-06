@@ -357,3 +357,12 @@ void DataManager_update_endurance()
         dash_data.endurance_delta = new_delta;
     }
 } 
+
+void DataManager_update_controls_event(){
+    if(dash_data.vc_status.vc_controls_event != sec_bus.vc_status.vc_controls_event){
+        dash_data.vc_status.vc_controls_event = sec_bus.vc_status.vc_controls_event;
+        dash_data.vc_controls_event_flag = true;
+
+    }
+
+}
