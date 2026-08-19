@@ -216,7 +216,7 @@ void DataManager_update_data()
     DataManager_update_vc_status();
     DataManager_update_controls_level();
     DataManager_update_endurance();
-    DataManager_update_driving_event();
+   // DataManager_update_driving_event();
 }
 
 void DataManager_update_lvbms()
@@ -367,6 +367,7 @@ void DataManager_update_endurance()
     }
 } 
 
+/*
 void DataManager_update_driving_event(){
     if(dash_data.vc_status.vc_driving_event != sec_bus.vc_status.vc_driving_event){
         dash_data.vc_status.vc_driving_event = sec_bus.vc_status.vc_driving_event;
@@ -374,4 +375,4 @@ void DataManager_update_driving_event(){
 
     }
 
-}
+}*/

@@ -16,37 +16,107 @@
 #define STATUS_H 50
 #define STATUS_TEXT_SCALE 2
 
-#define MODE_X
-#define MODE_Y
-#define MODE_W
-#define MODE_H
 
-#define PARAMETERS_X
-#define PARAMETERS_Y
-#define PARAMETERS_W
-#define PARAMETERS_H
+#define BTN_WIDTH     200
+#define BTN_HEIGHT    50
+#define BTN_START_X   100
+#define BTN_START_Y   100
+#define BTN_SPACING   20
+#define BTN_RADIUS    10
 
-static const display_row_t controls_rows[] = {
-    {"Test", 7}
+enum {
+   DRS_ROW,
+   VELOCITY_LIMIT_ROW 
 };
 
-static display_box_t controls_param_box = {
-    .title = "PARAMETERS",
 
+static const display_row_t event_parameters_rows[] = {
+    {"DRS", 4},
+    {"VELOCITY LIMIT", 4}
+};
+
+static display_box_t event_parameters_box = {
+    .title = "PARAMETERS",
+    .title_h = 20,
     .x = 0,
     .y = 0,
 
-    .title_h = 20,
-    .margin_x = 16,
+    .margin_x = 12,
     .margin_y = 7,
 
     .label_value_gap = 10,
     .row_gap = 5,
-    .rows = controls_rows,
-    .row_count = 1
 
+    .rows = event_parameters_rows,
+    .row_count = 2
 };
 
+static display_button_t accel_button = {
+    .title = "ACCELERATION",
+    .spacing = 20,
+
+    .x = 0,
+    .y = 0,
+    .w = 0,
+    .h = 0,
+    .r = 0,
+
+    .state = 0
+};
+
+static display_button_t autocross_button = {
+    .title = "AUTOCROSS",
+    .spacing = 20,
+
+    .x = 0,
+    .y = 0,
+    .w = 0,
+    .h = 0,
+    .r = 0,
+
+    .state = 0
+};
+
+/*
+static display_button_t skidpad_button = {
+    .title = "SKIDPAD",
+    .spacing = 20,
+
+    .x = 0,
+    .y = 0,
+    .w = 0,
+    .h = 0,
+    .r = 0,
+
+    .state = 0
+};
+
+
+static display_button_t endurance_button = {
+    .title = "ENDURANCE",
+    .spacing = 20,
+
+    .x = 0,
+    .y = 0,
+    .w = 0,
+    .h = 0,
+    .r = 0,
+
+    .state = 0
+};
+
+static display_button_t off_button = {
+    .title = "OFF",
+    .spacing = 20,
+
+    .x = 0,
+    .y = 0,
+    .w = 0,
+    .h = 0,
+    .r = 0,
+
+    .state = 0
+};*/
 
 
 
@@ -66,80 +136,68 @@ void draw_controls_screen(void){
         RA8875_BLACK
     );
 
-    //controls_param_box.x = 2*BOX_SPACING_X;
-    //controls_param_box.y = STATUS_H + BOX_SPACING_Y;
-    //CONTROLS PARAMETERS 
-    display_draw_box(&controls_param_box, RA8875_WHITE, RA8875_BLACK);
-    display_draw_box_labels(&controls_param_box, RA8875_WHITE);
+    //PARAMETER LOG
+    event_parameters_box.y = STATUS_H + BOX_SPACING_Y;
+    display_draw_box(&event_parameters_box, RA8875_WHITE, RA8875_BLACK);
+    display_draw_box_labels(&event_parameters_box, RA8875_WHITE);
 
-}
+    display_update_box_value(&event_parameters_box, DRS_ROW, "??.?", RA8875_WHITE, RA8875_BLACK);
+    display_update_box_value(&event_parameters_box, VELOCITY_LIMIT_ROW, "??.?", RA8875_WHITE, RA8875_BLACK);
+    
+
+    //ACCEL BUTTON
+    accel_button.x = display_box_width(&event_parameters_box) + BOX_SPACING_Y;
+    accel_button.y = event_parameters_box.y + display_box_height(&event_parameters_box) + BOX_SPACING_Y;
+    accel_button.h = BTN_HEIGHT;
+    accel_button.w = BTN_WIDTH;
+    accel_button.r = BTN_RADIUS;
+    accel_button.spacing = BTN_SPACING;
+    display_draw_button(&accel_button, RA8875_WHITE, RA8875_BLACK);
+
+    //AUTOCROSS BUTTON
+    autocross_button.x = accel_button.x + BOX_SPACING_X;
+    autocross_button.y = accel_button.y;
+    autocross_button.h = BTN_HEIGHT;
+    autocross_button.w = BTN_WIDTH;
+    autocross_button.r = BTN_RADIUS;
+    autocross_button.spacing = BTN_SPACING;
+    display_draw_button(&autocross_button, RA8875_WHITE, RA8875_BLACK);
 
 /*
-    //CONTROLS LEVEL
-    uint16_t controls_x = fault_x
-    uint16_t controls_y = STATUS_H + 2 * BOX_SPACING_Y + fault_h;
-    uint16_t controls_w = fault_w
+    //SKIDPAD BUTTON
+    skidpad_button.y = event_parameters_box.y + display_box_height(&event_parameters_box) + BOX_SPACING_Y;
+    skidpad_button.h = BTN_HEIGHT;
+    skidpad_button.w = BTN_WIDTH;
+    skidpad_button.r = BTN_RADIUS;
+    skidpad_button.spacing = BTN_SPACING;
+    display_draw_button(&skidpad_button, RA8875_WHITE, RA8875_BLACK);
 
-    display_status_banner(
-        controls_x,
-        controls_y,
-        controls_w,
-        CONTROLS_H,
-        "CONTROLS LEVEL"
-        RA8875_WHITE,
-        RA8875_BLACK
-    );
 
-    //EBS STATE
-    //uint16_t ebs_x = 
-    //uint16_t ebs_y = 
-    //uint16_t ebs_w = 
+    //ENDURANCE BUTTON
+    endurance_button.y = event_parameters_box.y + display_box_height(&event_parameters_box) + BOX_SPACING_Y;
+    endurance_button.h = BTN_HEIGHT;
+    endurance_button.w = BTN_WIDTH;
+    endurance_button.r = BTN_RADIUS;
+    endurance_button.spacing = BTN_SPACING;
+    display_draw_button(&endurance_button, RA8875_WHITE, RA8875_BLACK);
+
+
+
+    //OFF BUTTON
+    off_button.y = event_parameters_box.y + display_box_height(&event_parameters_box) + BOX_SPACING_Y;
+    off_button.h = BTN_HEIGHT;
+    off_button.w = BTN_WIDTH;
+    off_button.r = BTN_RADIUS;
+    off_button.spacing = BTN_SPACING;
+    display_draw_button(&off_button, RA8875_WHITE, RA8875_BLACK);
+        
+*/
 
     
-     *  display_status_banner(
-     *      ebs_x,
-     *      ebs_y,
-     *      ebs_w,
-     *      EBS_H,
-     *      "EBS STATUS",
-     *      RA8875_WHITE,
-     *      RA8875_BLACK
-     *  );
-     *
-     * 
 }
 
 
-void update_controls_driving_event(void){
-    //uint8_t event = dash_data.vc_status.vc_driving_event;
 
-
-    switch(event){
-        case ENDURANCE: {
-
-            break;
-        }
-            
-        case AUTOCROSS: {
-
-            break;
-        }
-
-
-        case SKIDPAD: {
-
-            break;
-        }
-
-
-        case ACCEL: {
-
-            break;
-        }
-
-    }
-
-}
 
 
 

@@ -88,4 +88,4 @@ void DataManager_update_vc_status(void);
 void DataManager_update_faults(void);
 void DataManager_update_controls_level(void);
 void DataManager_update_endurance(void);
-void DataManaager_update_driving_event(void);
+//void DataManager_update_driving_event(void);

@@ -53,6 +53,25 @@ typedef struct
     uint16_t h;
 } display_bar_t;
 
+typedef enum{
+    BTN_STATE_NORMAL = 0,
+    BTN_STATE_FOCUSED,
+    BTN_STATE_PRESSDED
+} ButtonState;
+
+typedef struct {
+    const char *title;
+
+    uint16_t spacing;
+    uint16_t x;
+    uint16_t y;
+    uint16_t w;
+    uint16_t h;
+    uint16_t r;
+
+    ButtonState state;
+
+} display_button_t;
 
 uint16_t display_box_width(const display_box_t *box);
 
@@ -122,3 +141,6 @@ void display_update_bar(display_bar_t *bar,
                         uint16_t percentage,
                         uint16_t fill_color);
 
+void display_draw_button(const display_button_t *button, uint16_t text_color, uint16_t bg_color);
+
+void display_update_button(display_button_t* button, ButtonState new_state);

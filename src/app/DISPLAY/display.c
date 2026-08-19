@@ -578,18 +578,47 @@ void display_update_bar(display_bar_t *bar,
     }
 }
 
-void display_controls_parameters_log(uint16_t x,
-                       uint16_t y,
-                       uint16_t w,
-                       uint16_t h,
-                       uint16_t title_h,
-                       uint16_t margin_x,
-                       uint16_t margin_y,
-                       uint16_t row_gap,
-                       uint8_t text_scale,
-                       const char *title){
-    if(title == NULL) return;
+void display_draw_button(const display_button_t* button, uint16_t text_color, uint16_t bg_color){
+    RA8875_graphic_mode();
+
+    RA8875_draw_fill_round_rect(button->x, button->y, button->w, button->h, button->r, bg_color);
+    RA8875_draw_round_rect(button->x, button->y, button->w, button->h, button->r, bg_color);
+
+    uint16_t text_x = button->x + (button->w/4);
+    uint16_t text_y = button->y + (button-> h/3);
 
 
-    //uint8_t parameters_count = 
+    RA8875_text_mode();
+    RA8875_text_scale(DISPLAY_TEXT_SCALE);
+    RA8875_text_color(text_color, bg_color);
+    RA8875_text_cursor_position(text_x, text_y);
+    RA8875_text_write(button->title, strlen(button->title));
+
+    RA8875_graphic_mode();
+}
+
+void display_update_button(display_button_t* button, ButtonState new_state){
+    RA8875_graphic_mode();
+    
+    if(button->state == new_state){
+        return;
+    }
+
+    button->state = new_state;
+
+    switch(button->state){
+        
+        case BTN_STATE_NORMAL: 
+            display_draw_button(button, RA8875_WHITE, RA8875_BLACK);
+            break;
+        case BTN_STATE_FOCUSED:
+            display_draw_button(button, RA8875_BLACK, RA8875_WHITE);
+            break;
+        case BTN_STATE_PRESSDED:
+            display_draw_button(button, RA8875_WHITE, RA8875_GREEN);
+            break;
+    }
+
+    RA8875_graphic_mode();
+
 }
